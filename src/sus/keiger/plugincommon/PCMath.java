@@ -149,7 +149,7 @@ public final class PCMath
         return false;
     }
 
-    public double GetDistanceBetweenBounds(BoundingBox a, BoundingBox b)
+    public static double GetDistanceBetweenBounds(BoundingBox a, BoundingBox b)
     {
         if (PCMath.AreBoundsColliding(a, b))
         {
