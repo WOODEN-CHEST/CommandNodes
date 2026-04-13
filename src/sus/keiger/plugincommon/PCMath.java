@@ -5,6 +5,11 @@ import org.bukkit.block.Block;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
 public final class PCMath
 {
     // Fields.
@@ -169,5 +174,74 @@ public final class PCMath
                 Math.abs(a.getMinZ() - b.getMaxZ()));
 
         return Math.sqrt((XDistance * XDistance) + (YDistance * YDistance) + (ZDistance * ZDistance));
+    }
+
+    public static List<BoundingBox> CreateNonOverlappingBounds(Collection<BoundingBox> bounds)
+    {
+        List<BoundingBox> ResultBounds = new ArrayList<>();
+
+        for (BoundingBox CuttingBound : bounds)
+        {
+            List<BoundingBox> NewResultBounds = new ArrayList<>();
+            for (BoundingBox ExistingBound : ResultBounds)
+            {
+                NewResultBounds.addAll(BoundsCut(ExistingBound, CuttingBound));
+            }
+
+            NewResultBounds.add(CuttingBound);
+            ResultBounds = NewResultBounds;
+        }
+
+        return ResultBounds;
+    }
+
+    public static List<BoundingBox> BoundsCut(BoundingBox source, BoundingBox cut)
+    {
+        if (!source.overlaps(cut))
+        {
+            return Collections.singletonList(source.clone());
+        }
+
+        List<BoundingBox> Result = new ArrayList<>();
+
+        if (source.getMinX() <= cut.getMinX())
+        {
+            Result.add(new BoundingBox(source.getMinX(), source.getMinY(), source.getMinZ(),
+                    cut.getMinX(), source.getMaxY(), source.getMaxZ()));
+        }
+        if (cut.getMaxX() <= source.getMaxX())
+        {
+            Result.add(new BoundingBox(cut.getMaxX(), source.getMinY(), source.getMinZ(),
+                    source.getMaxX(), source.getMaxY(), source.getMaxZ()));
+        }
+
+        double BoundMinX = Math.max(source.getMinX(), cut.getMinX());
+        double BoundMaxX = Math.min(source.getMaxX(), cut.getMaxX());
+        if (source.getMinY() <= cut.getMinY())
+        {
+            Result.add(new BoundingBox(BoundMinX, source.getMinY(), source.getMinZ(),
+                    BoundMaxX, cut.getMinY(), source.getMaxZ()));
+        }
+        if (cut.getMaxY() <= source.getMaxY())
+        {
+            Result.add(new BoundingBox(BoundMinX, cut.getMaxY(), source.getMinZ(),
+                    BoundMaxX, source.getMaxY(), source.getMaxZ()));
+        }
+
+        double BoundMinY = Math.max(source.getMinY(), cut.getMinY());
+        double BoundMaxY = Math.min(source.getMaxY(), cut.getMaxY());
+
+        if (source.getMinZ() <= cut.getMinZ())
+        {
+            Result.add(new BoundingBox(BoundMinX, BoundMinY, source.getMinZ(),
+                    BoundMaxX, BoundMaxY, cut.getMinZ()));
+        }
+        if (cut.getMaxZ() <= source.getMaxZ())
+        {
+            Result.add(new BoundingBox(BoundMinX, BoundMinY, cut.getMaxZ(),
+                    BoundMaxX, BoundMaxY, source.getMaxZ()));
+        }
+
+        return Result.stream().filter(box -> box.getVolume() > 0).toList();
     }
 }

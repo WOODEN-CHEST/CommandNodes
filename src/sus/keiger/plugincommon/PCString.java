@@ -35,7 +35,7 @@ public class PCString
         return word.toLowerCase().endsWith("s") ? word + "'" : word + "'s";
     }
 
-    public static String ExceptionToString(Exception e)
+    public static String ExceptionToString(Throwable e)
     {
         return "%s: %s. Stacktrace: %s".formatted(e.getClass().getName(), e.getMessage(),
                 String.join("\n    at ", Arrays.stream(e.getStackTrace()).map(StackTraceElement::toString).toList()));
