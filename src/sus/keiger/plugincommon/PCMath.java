@@ -192,7 +192,7 @@ public final class PCMath
             ResultBounds = NewResultBounds;
         }
 
-        return ResultBounds;
+        return Collections.unmodifiableList(ResultBounds);
     }
 
     public static List<BoundingBox> BoundsCut(BoundingBox source, BoundingBox cut)
