@@ -122,6 +122,26 @@ public final class PCMath
         return Unit.rotateAroundY(ClampedAngle);
     }
 
+    public static double GetDirectionYaw(Vector vector)
+    {
+        return -Math.atan2(vector.getX(), vector.getZ());
+    }
+
+    public double GetDirectionPitch(Vector vector)
+    {
+        final double MAX_PITCH = Math.PI / 2d;
+        double PitchRotation = Math.atan2(vector.getY(), vector.getZ());
+        if (PitchRotation < -MAX_PITCH)
+        {
+            PitchRotation = Math.abs(PitchRotation) % MAX_PITCH;
+        }
+        if (PitchRotation > MAX_PITCH)
+        {
+            PitchRotation = -(Math.abs(PitchRotation) % MAX_PITCH);
+        }
+        return PitchRotation;
+    }
+
     public static boolean AreBoundsOnGround(BoundingBox bounds, World world)
     {
         int MinX = (int)Math.floor(bounds.getMinX());
