@@ -127,7 +127,7 @@ public final class PCMath
         return -Math.atan2(vector.getX(), vector.getZ());
     }
 
-    public double GetDirectionPitch(Vector vector)
+    public static double GetDirectionPitch(Vector vector)
     {
         final double MAX_PITCH = Math.PI / 2d;
         double PitchRotation = Math.atan2(vector.getY(), vector.getZ());
