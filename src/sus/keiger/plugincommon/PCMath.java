@@ -5,10 +5,7 @@ import org.bukkit.block.Block;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public final class PCMath
 {
@@ -140,6 +137,24 @@ public final class PCMath
             PitchRotation = -(Math.abs(PitchRotation) % MAX_PITCH);
         }
         return PitchRotation;
+    }
+
+    public static DirectionAxis GetDirectionAxis(Vector direction)
+    {
+        Objects.requireNonNull(direction, "direction is null");
+
+        Vector ForwardAxis = new Vector(0, 0, 1);
+        Vector UpAxis = new Vector(0, 1, 0);
+        Vector LeftAxis = new Vector(1, 0, 0);
+
+        double YawRotation = PCMath.GetDirectionYaw(direction);
+        double PitchRotation = PCMath.GetDirectionPitch(direction);
+
+        ForwardAxis.rotateAroundX(YawRotation).rotateAroundY(PitchRotation);
+        UpAxis.rotateAroundX(YawRotation).rotateAroundY(PitchRotation);
+        LeftAxis.rotateAroundZ(PitchRotation).rotateAroundY(YawRotation);
+
+        return new DirectionAxis(ForwardAxis, UpAxis, LeftAxis);
     }
 
     public static boolean AreBoundsOnGround(BoundingBox bounds, World world)
