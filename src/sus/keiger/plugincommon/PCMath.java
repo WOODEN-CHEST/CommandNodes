@@ -134,16 +134,14 @@ public final class PCMath
     {
         Objects.requireNonNull(direction, "direction is null");
 
-        Vector ForwardAxis = new Vector(0, 0, 1);
-        Vector UpAxis = new Vector(0, 1, 0);
-        Vector LeftAxis = new Vector(1, 0, 0);
-
-        double YawRotation = PCMath.GetDirectionYaw(direction);
-        double PitchRotation = PCMath.GetDirectionPitch(direction);
-
-        ForwardAxis.rotateAroundX(YawRotation).rotateAroundY(PitchRotation);
-        UpAxis.rotateAroundX(YawRotation).rotateAroundY(PitchRotation);
-        LeftAxis.rotateAroundZ(PitchRotation).rotateAroundY(YawRotation);
+        Vector ForwardAxis = direction.lengthSquared() <= 0.00000001d
+                ? new Vector(0, 0, 1)
+                : direction.clone().normalize();
+        Vector UpReference = Math.abs(ForwardAxis.getY()) > 0.99d
+                ? new Vector(1, 0, 0)
+                : new Vector(0, 1, 0);
+        Vector LeftAxis = UpReference.clone().crossProduct(ForwardAxis).normalize();
+        Vector UpAxis = ForwardAxis.clone().crossProduct(LeftAxis).normalize();
 
         return new DirectionAxis(ForwardAxis, UpAxis, LeftAxis);
     }
