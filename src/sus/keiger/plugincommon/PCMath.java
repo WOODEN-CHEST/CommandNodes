@@ -126,17 +126,8 @@ public final class PCMath
 
     public static double GetDirectionPitch(Vector vector)
     {
-        final double MAX_PITCH = Math.PI / 2d;
-        double PitchRotation = Math.atan2(vector.getY(), vector.getZ());
-        if (PitchRotation < -MAX_PITCH)
-        {
-            PitchRotation = Math.abs(PitchRotation) % MAX_PITCH;
-        }
-        if (PitchRotation > MAX_PITCH)
-        {
-            PitchRotation = -(Math.abs(PitchRotation) % MAX_PITCH);
-        }
-        return PitchRotation;
+        double HorizontalLength = Math.sqrt(vector.getX() * vector.getX() + vector.getZ() * vector.getZ());
+        return Math.atan2(vector.getY(), HorizontalLength);
     }
 
     public static DirectionAxis GetDirectionAxis(Vector direction)
