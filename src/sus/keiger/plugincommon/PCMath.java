@@ -2,6 +2,7 @@ package sus.keiger.plugincommon;
 
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
@@ -267,5 +268,27 @@ public final class PCMath
         }
 
         return Result.stream().filter(box -> box.getVolume() > 0).toList();
+    }
+
+    public static Vector YawToFacingDirection(float yaw)
+    {
+        return YawToCardinalBlockFace(yaw).getDirection();
+    }
+
+    public static BlockFace YawToCardinalBlockFace(float yaw)
+    {
+        if ((135 <= yaw) || (yaw < -135))
+        {
+            return BlockFace.NORTH;
+        }
+        if ((-135 <= yaw) && (yaw < -45))
+        {
+            return BlockFace.EAST;
+        }
+        if ((-45 <= yaw) && (yaw < 45))
+        {
+            return BlockFace.SOUTH;
+        }
+        return BlockFace.WEST;
     }
 }
