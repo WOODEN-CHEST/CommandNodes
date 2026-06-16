@@ -1,0 +1,124 @@
+import java.nio.file.Files
+import java.net.URI
+import java.util.zip.ZipFile
+
+plugins {
+    id 'java-library'
+}
+
+abstract class DownloadJarTask extends DefaultTask {
+    @Input
+    abstract Property<String> getSourceUrl()
+
+    @OutputFile
+    abstract RegularFileProperty getDestinationFile()
+
+    @TaskAction
+    void Download()
+    {
+        def DestinationPath = destinationFile.get().asFile.toPath()
+        Files.createDirectories(DestinationPath.parent)
+
+        URI.create(sourceUrl.get()).toURL().withInputStream { Input ->
+            Files.newOutputStream(DestinationPath).withCloseable { Output ->
+                Output << Input
+            }
+        }
+    }
+}
+
+abstract class ExtractNestedJarsTask extends DefaultTask {
+    @InputFile
+    abstract RegularFileProperty getSourceJar()
+
+    @OutputDirectory
+    abstract DirectoryProperty getDestinationDirectory()
+
+    @TaskAction
+    void Extract()
+    {
+        def DestinationPath = destinationDirectory.get().asFile.toPath()
+        Files.createDirectories(DestinationPath)
+
+        new ZipFile(sourceJar.get().asFile).withCloseable { SourceZip ->
+            SourceZip.entries().each { Entry ->
+                if (Entry.directory || !Entry.name.endsWith('.jar')) {
+                    return
+                }
+
+                def OutputPath = DestinationPath.resolve(Entry.name.replace('/', '__'))
+                Files.createDirectories(OutputPath.parent)
+
+                SourceZip.getInputStream(Entry).withCloseable { Input ->
+                    Files.newOutputStream(OutputPath).withCloseable { Output ->
+                        Output << Input
+                    }
+                }
+            }
+        }
+    }
+}
+
+def DownloadDirectory = layout.buildDirectory.dir('downloaded-dependencies')
+def PaperNestedJarsDirectory = layout.buildDirectory.dir('extracted-paper-jars')
+
+def PaperJar = tasks.register('downloadPaperJar', DownloadJarTask) {
+    sourceUrl = providers.gradleProperty('paperJarUrl')
+    destinationFile = DownloadDirectory.map { it.file('paper-26.1.2-70.jar') }
+}
+
+def GuavaJar = tasks.register('downloadGuavaJar', DownloadJarTask) {
+    sourceUrl = providers.gradleProperty('guavaJarUrl')
+    destinationFile = DownloadDirectory.map { it.file('guava-33.6.0-jre.jar') }
+}
+
+def JomlJar = tasks.register('downloadJomlJar', DownloadJarTask) {
+    sourceUrl = providers.gradleProperty('jomlJarUrl')
+    destinationFile = DownloadDirectory.map { it.file('joml-1.10.9.jar') }
+}
+
+def PaperNestedJars = tasks.register('extractPaperNestedJars', ExtractNestedJarsTask) {
+    sourceJar = PaperJar.flatMap { it.destinationFile }
+    destinationDirectory = PaperNestedJarsDirectory
+}
+
+def PaperNestedJarFiles = files(fileTree(dir: PaperNestedJarsDirectory.get().asFile, include: '*.jar')) {
+    builtBy PaperNestedJars
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src']
+        }
+    }
+}
+
+dependencies {
+    compileOnly files(PaperJar)
+    compileOnly files(GuavaJar)
+    compileOnly files(JomlJar)
+    compileOnly PaperNestedJarFiles
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    dependsOn PaperJar, GuavaJar, JomlJar, PaperNestedJars
+
+    options.encoding = 'UTF-8'
+    options.release = 25
+}
+
+tasks.named('jar') {
+    archiveFileName = 'PluginCommon.jar'
+    destinationDirectory = layout.projectDirectory.dir('out')
+}
+
+tasks.named('build') {
+    dependsOn tasks.named('jar')
+}
