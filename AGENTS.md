@@ -144,7 +144,7 @@ the refactor after you complete your task, but don't refactor instantly.
 - **Java version:** 25
 - Do not use any deprecated methods. Check the API docs when in doubt:
   [https://jd.papermc.io/paper/26.1.2/index.html](https://jd.papermc.io/paper/26.1.2/index.html)
-- There is no need to build the plugin — the build script is out of scope and inaccessible.
+- The Gradle build script is available and can be used when relevant.
 - Do not run git commands that modify files. Read-only git commands are fine.
 
 ---

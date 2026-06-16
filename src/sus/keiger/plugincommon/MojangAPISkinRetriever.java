@@ -7,7 +7,7 @@ import org.json.simple.*;
 import org.json.simple.parser.*;
 import sus.keiger.plugincommon.player.*;
 
-import java.io.IOException;
+import java.io.*;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
@@ -15,7 +15,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.logging.Logger;
-
 public class MojangAPISkinRetriever
 {
     // Private fields.
@@ -105,11 +104,14 @@ public class MojangAPISkinRetriever
         {
             URL TargetURL = URI.create(GetSkinRequestURL(playerUUID, false)).toURL();
             URLConnection Connection = TargetURL.openConnection();
-            String ReadData = new String(Connection.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-            JSONObject ParsedJSON = (JSONObject)new JSONParser().parse(ReadData);
-            return GetSkinFromResponse(ParsedJSON);
+            try (InputStream InStream = Connection.getInputStream())
+            {
+                String ReadData = new String(InStream.readAllBytes(), StandardCharsets.UTF_8);
+                JSONObject ParsedJSON = (JSONObject)new JSONParser().parse(ReadData);
+                return GetSkinFromResponse(ParsedJSON);
+            }
         }
-        catch (IOException | ParseException e)
+        catch (IOException | ParseException | ClassCastException e)
         {
             if (_logger != null)
             {
